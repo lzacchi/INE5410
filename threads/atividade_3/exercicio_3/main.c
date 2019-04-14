@@ -14,23 +14,29 @@
 // |         como 2o retorno)              |
 // v                                       v
 double* load_vector(const char* filename, int* out_size);
-void avaliar(double* a, double* b, int a_size, double result);
 
-double *a, *b, *thread_result;
+// Avalia se o prod_escalar é o produto escalar dos vetores a e b. Assume-se
+// que ambos a e b sejam vetores de tamanho size.
+void avaliar(double* a, double* b, int size, double prod_escalar);
+
+double *a;
+double* b;
+double* partial_result;
 
 typedef struct {
-    int id;
+    int t_id;
     int start;
     int end;
 } param_t;
 
 
+
 void* product(void* args) {
     param_t params = *(param_t*) args;
 
-    for(int i = params.start; i < params.end; ++i) {
-        thread_result[params.id] += a[i] * b[i];
-    }
+    for(int i = params.start; i < params.end; ++i)
+        partial_result[params.t_id] += a[i] * b[i];
+
     pthread_exit(NULL);
 }
 
@@ -77,37 +83,36 @@ int main(int argc, char* argv[]) {
     }
 
     // Garante que não serão criadas mais threads que necessário
-    if (n_threads > a_size)
+    if (n_threads > a_size) 
         n_threads = a_size;
-
-    thread_result = (double*) malloc(sizeof(double) * n_threads);
+    
+    // Cria vetor para armazenar resultados parciais
+    partial_result = (double*) calloc(n_threads, sizeof(double));
 
     pthread_t threads[n_threads];
     param_t params[n_threads];
     int thread_start = 0;
-    int thread_size;
+    int chunk_size;
 
     for (int i = 0; i < n_threads; ++i) {
         if (i < a_size % n_threads)
-            thread_size = a_size / n_threads + 1;
+            chunk_size = a_size / n_threads + 1;
         else
-            thread_size = a_size / n_threads;
+            chunk_size = a_size / n_threads;
         
-        params[i].id = i;
+        params[i].t_id = i;
         params[i].start = thread_start;
-        params[i].end = thread_start + thread_size;
+        params[i].end = thread_start + chunk_size;
 
         pthread_create(&threads[i], NULL, product, (void*)&params[i]);
-        thread_start += thread_size;
+        thread_start += chunk_size;
     }
 
     double result = 0;
     for (int i = 0; i < n_threads; ++i) {
         pthread_join(threads[i], NULL);
-        result += thread_result[i];
+        result += partial_result[i];
     }
-
-    
     
     // IMPORTANTE: avalia o resultado!
     avaliar(a, b, a_size, result);
@@ -115,7 +120,7 @@ int main(int argc, char* argv[]) {
     // Libera memória
     free(a);
     free(b);
-    free(thread_result);
+    free(partial_result);
 
     return 0;
 }
