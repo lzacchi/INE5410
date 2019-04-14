@@ -26,7 +26,6 @@ double* b;
 double *c;
 
 typedef struct {
-    int id;
     int start;
     int end;
 } param_t;
@@ -87,25 +86,23 @@ int main(int argc, char* argv[]) {
     //Cria vetor do resultado 
     c = malloc(a_size*sizeof(double));
 
-    // Calcula com uma thread só. Programador original só deixou a leitura 
-    // do argumento e fugiu pro caribe. É essa computação que você precisa 
-    // paralelizar
-
     pthread_t threads[n_threads];
     param_t params [n_threads];
-    int thread_start, thread_size;
+    int thread_start = 0;
+    int thread_size;
 
     thread_start = 0;
     for (int i = 0; i < n_threads; ++i) {
-        // thread_size = i < (a_size % n_threads) ? a_size/n_threads + 1 : a_size/n_threads;
+
         if (i < a_size % n_threads) {
             thread_size = a_size / n_threads + 1;
         } else {
             thread_size = a_size / n_threads;
         }
+
         params[i].start = thread_start;
         params[i].end = thread_start + thread_size;
-        printf("Thread %d intervalo: [%d, %d)\n", i, params[i].start, params[i].end);
+        
         pthread_create(&threads[i], NULL, sum_vector, (void*)&params[i]);
         thread_start += thread_size;
     }
@@ -114,13 +111,11 @@ int main(int argc, char* argv[]) {
         pthread_join(threads[i], NULL);
     }
 
-    //    +---------------------------------+
-    // ** | IMPORTANTE: avalia o resultado! | **
-    //    +---------------------------------+
+    // IMPORTANTE: avalia o resultado!
     avaliar(a, b, c, a_size);
     
 
-    //Importante: libera memória
+    // Importante: libera memória
     free(a);
     free(b);
     free(c);
