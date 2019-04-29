@@ -27,12 +27,12 @@ void *produtor_func(void *arg) {
     for (int i = 0; i <= max; ++i) {
         int produto;
         
-        sem_wait(&sem_prod);
         if (i == max)
             produto = -1;          //envia produto sinlizando FIM
         else 
             produto = produzir(i); //produz um elemento normal
         
+        sem_wait(&sem_prod);
         indice_produtor = (indice_produtor + 1) % tamanho_buffer; //calcula posição próximo elemento
         buffer[indice_produtor] = produto; //adiciona o elemento produzido à lista
         sem_post(&sem_cons);
