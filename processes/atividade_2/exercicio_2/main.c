@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <stdlib.h>
 
 //                          (principal)
 //                               |
@@ -23,7 +24,28 @@
 
 int main(int argc, char** argv) {
 
-    
-
+    for (int i = 0; i < 2; ++i) {
+        if (!fork()) {
+            printf("Processo %d, filho de %d\n", getpid(), getppid());
+            fflush(stdout);
+            for(int j = 0; j < 3; ++j) {
+                if (!fork()) {
+                    printf("Processo %d, filho de %d\n", getpid(), getppid());
+                    sleep(5);
+                    printf("Processo %d finalizado\n", getpid());
+                    exit(0);
+                }
+            }
+            for(int j = 0; j < 3; ++j) {
+                wait(NULL);
+            }
+            printf("Processo %d finalizado\n", getpid());
+            exit(0);
+        }
+    }
+    for (int i = 0; i < 2; ++i) {
+        wait(NULL);
+    }
+    printf("Processo principal %d finalizado\n", getpid());
     return 0;
 }
