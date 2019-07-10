@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: br.ufsc.atividade11.MarketTest
--------------------------------------------------------------------------------
-Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.916 s - in br.ufsc.atividade11.MarketTest
